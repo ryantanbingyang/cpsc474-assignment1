@@ -1,7 +1,7 @@
 CPP=g++
 CPPFLAGS=-Wall -g3
 
-TestCribbage: test_cribbage.o rank.o ordered_ranks.o character_suits.o hand.o game.o history.o utility.o policy.o greedy.o c_utility.o c_policy.o c_cribbage.o c_greedy.o my_policy.o
+TestCribbage: test_cribbage_c.o rank.o ordered_ranks.o character_suits.o hand.o game.o history.o utility.o policy.o greedy.o c_utility.o c_policy.o c_cribbage.o c_greedy.o my_policy.o
 	${CPP} ${CPPFLAGS} -o $@ $^
 
 rank.o: rank.cpp
@@ -18,7 +18,7 @@ c_policy.o: c_policy.cpp c_policy.h c_cribbage.h
 c_greedy.o: c_greedy.c c_greedy.h c_cribbage.h
 c_cribbage.o: c_cribbage.cpp c_cribbage.h hand.h history.h game.h
 my_policy.o: my_policy.c c_cribbage.h c_greedy.h
-test_cribbage.o: test_cribbage.cpp game.h policy.h greedy.h c_policy.h c_cribbage.h
+test_cribbage_c.o: test_cribbage_c.cpp game.h policy.h greedy.h c_policy.h c_cribbage.h
 
 clean:
 	rm -f *.o TestCribbage
