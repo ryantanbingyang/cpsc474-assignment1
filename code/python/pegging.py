@@ -61,7 +61,7 @@ class Pegging:
         """ Determines if this given player has passed in the current
             round of pegging in this history.
 
-            player -- 0 or 1 for the non-dealer and dealer respectively
+            player -- 0 or 1 for the dealer and non-dealer respectively
         """
         return self._passed[player]
 
@@ -102,7 +102,7 @@ class Pegging:
 
             game -- a Cribbage game
             card -- a (rank, suit) pair, or None
-            player -- 0 or 1 for the non-dealer and dealer respectively
+            player -- 0 or 1 for the dealer and non-dealer respectively
         """
         if card is None:
             if self._passed[player]:
