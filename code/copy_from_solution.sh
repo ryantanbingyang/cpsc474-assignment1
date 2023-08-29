@@ -91,6 +91,7 @@ cp ../../cpsc474_cribbage/code/./java/edu/yale/cs/cpsc474/RandomThrower.java ./j
 cp ../../cpsc474_cribbage/code/./java/edu/yale/cs/cpsc474/RankType.java ./java/edu/yale/cs/cpsc474/RankType.java
 cp ../../cpsc474_cribbage/code/./java/edu/yale/cs/cpsc474/SuitType.java ./java/edu/yale/cs/cpsc474/SuitType.java
 cp ../../cpsc474_cribbage/code/./java/edu/yale/cs/cpsc474/CribbageGame.java ./java/edu/yale/cs/cpsc474/CribbageGame.java
+cp ../../cpsc474_cribbage/code/./java/edu/yale/cs/cpsc474/GameAction.java ./java/edu/yale/cs/cpsc474/GameAction.java
 cp ../../cpsc474_cribbage/code/./python/cribbage.py ./python/cribbage.py
 cp ../../cpsc474_cribbage/code/./python/deck.py ./python/deck.py
 cp ../../cpsc474_cribbage/code/./python/pegging.py ./python/pegging.py
