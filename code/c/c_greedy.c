@@ -54,7 +54,7 @@ void greedy_keep(const void *game, const void *hand, int scores[2], int am_deale
     }
 }
 
-const void *greedy_peg(const void *game, const void *hand, const void *hist, int scores[2], int am_dealer)
+const void *greedy_peg(const void *game, const void *hand, const void *turn, const void *hist, int scores[2], int am_dealer)
 {
   const void *selected = NULL;
   size_t ties = 0;

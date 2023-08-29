@@ -23,11 +23,12 @@ class CribbagePolicy(ABC):
 
     
     @abstractmethod
-    def peg(self, cards, history, scores, am_dealer):
+    def peg(self, cards, history, turn, scores, am_dealer):
         """ Returns the card to play from the given list.
 
             cards -- a list of cards
             history -- the pegging history up to the point to decide what to play
+            turn -- the cut card
             scores -- the current scores, with this policy's score first
             am_dealer -- a boolean flag indicating whether the crib
                          belongs to this policy
@@ -70,11 +71,12 @@ class PegPolicy(ABC):
 
         
     @abstractmethod
-    def peg(self, cards, history, scores, am_dealer):
+    def peg(self, cards, history, turn, scores, am_dealer):
         """ Returns the card to play from the given list.
 
             cards -- a list of cards
             history -- the pegging history up to the point to decide what to play
+            turn -- the cut card
             scores -- the current scores, with this policy's score first
             am_dealer -- a boolean flag indicating whether the crib
                          belongs to this policy
@@ -112,16 +114,17 @@ class CompositePolicy(CribbagePolicy):
         return self._thrower.keep(hand, scores, am_dealer)
 
 
-    def peg(self, cards, history, scores, am_dealer):
+    def peg(self, cards, history, turn, scores, am_dealer):
         """ Returns the card to play selected by this policy's pegging policy.
 
             cards -- a list of cards
             history -- the pegging history up to the point to decide what to play
+            turn -- the cut card
             scores -- the current scores, with this policy's score first
             am_dealer -- a boolean flag indicating whether the crib
                          belongs to this policy
         """
-        return self._pegger.peg(cards, history, scores, am_dealer)
+        return self._pegger.peg(cards, history, turn, scores, am_dealer)
     
     
 class RandomThrower(ThrowPolicy):
@@ -163,11 +166,12 @@ class RandomPegger(PegPolicy):
         super().__init__(game)
 
 
-    def peg(self, cards, history, scores, am_dealer):
+    def peg(self, cards, history, turn, scores, am_dealer):
         """ Selects a card to play uniformly randomly from the given cards.
 
             cards -- a list of cards
             history -- the pegging history up to the point to decide what to play
+            turn -- the cut card
             scores -- the current scores, with this policy's score first
             am_dealer -- a boolean flag indicating whether the crib
                          belongs to this policy
@@ -222,12 +226,13 @@ class GreedyPegger(PegPolicy):
         super().__init__(game)
 
 
-    def peg(self, cards, history, scores, am_dealer):
+    def peg(self, cards, history, turn, scores, am_dealer):
         """ Returns the card that maximizes the points earned on the next
             play.  Ties are broken uniformly randomly.
 
             cards -- a list of cards
             history -- the pegging history up to the point to decide what to play
+            turn -- the cut card
             scores -- the current scores, with this policy's score first
             am_dealer -- a boolean flag indicating whether the crib
                          belongs to this policy

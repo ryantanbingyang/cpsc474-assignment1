@@ -34,7 +34,7 @@ namespace cpsc474
 	return cards.split(std::vector<size_t> {index1, index2});
   }
 
-  const CribbageCard *RandomPegger::peg(const CribbageHand& cards, const PeggingHistory& hist, const std::vector<int>& scores, bool amDealer)
+  const CribbageCard *RandomPegger::peg(const CribbageHand& cards, const PeggingHistory& hist, const CribbageCard& turn, const std::vector<int>& scores, bool amDealer)
   {
     const CribbageCard *selected = nullptr;
     size_t validCards = 0;

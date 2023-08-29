@@ -4,6 +4,8 @@
 #include <cstdlib>
 #include <ctime>
 #include <cstdlib>
+#include <cmath>
+#include <cstring>
 
 #include "game.h"
 #include "policy.h"
@@ -22,10 +24,21 @@ void reportResults(const EvaluationResults& results);
 int main(int argc, char **argv)
 {
   size_t numGames = 2;
+  size_t totalGames = 0;
+  long runTime = 0;
   
   if (argc > 1)
     {
-      numGames = atoi(argv[1]);
+      if (strcmp(argv[1], "--time") == 0)
+	{
+	  numGames = 1000;
+	  runTime = atoi(argv[2]);
+	}
+      else
+	{
+	  runTime = 0;
+	  numGames = atoi(argv[1]);
+	}
     }
   if (numGames <= 0)
     {
@@ -46,7 +59,13 @@ int main(int argc, char **argv)
 
   try
     {
-      results = game.evaluatePolicies(&submission, &benchmark, (size_t)numGames);
+      time_t startTime = time(NULL);
+      while (totalGames == 0 || time(NULL) - startTime < runTime)
+	{
+	  EvaluationResults batchResults = game.evaluatePolicies(&submission, &benchmark, (size_t)numGames);
+	  results = cpsc474::add(results, batchResults);
+	  totalGames += numGames;
+	}
     }
   catch (const std::string& s)
     {
@@ -60,8 +79,20 @@ int main(int argc, char **argv)
 void reportResults(const EvaluationResults& results)
 {
   std::cout << "NET: " << std::get<0>(results).first - std::get<0>(results).second
-	    << std::endl
-	    << std::get<0>(results).first
+	    << std::endl;
+  long sumSquares = 0;
+  long sumValues = 0;
+  for (auto i = std::get<1>(results).begin(); i != std::get<1>(results).end(); i++)
+    {
+      sumSquares += i->first * i->first * i->second;
+      sumValues += i->first * i->second;
+    }
+  int numGames = std::get<3>(results);
+  double mean = (double)sumValues / numGames;
+  double variance = (double)sumSquares / numGames - mean * mean;
+  double stddev = sqrt(variance) / sqrt(numGames);
+  std::cout << "CONF: " << mean - 2 * stddev << std::endl;
+  std::cout << std::get<0>(results).first
 	    << "-" << std::get<0>(results).second
 	    << " {";
   for (auto i = std::get<1>(results).begin(); i != std::get<1>(results).end(); i++)

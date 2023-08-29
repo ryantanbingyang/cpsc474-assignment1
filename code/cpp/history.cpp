@@ -2,7 +2,10 @@
 
 #include <numeric>
 
+#include <utility>
+#include <vector>
 #include <unordered_set>
+#include <algorithm>
 
 #include <stdlib.h>
 
@@ -252,5 +255,36 @@ namespace cpsc474
     result.push_back(lastScore);
     return result;
   }
+
+  std::vector<std::vector<std::pair<int, const CribbageCard *>>> PeggingHistory::plays() const
+  {
+    std::vector<std::vector<std::pair<int, const CribbageCard *>>> result;
+    std::vector<std::pair<int, const CribbageCard *>> round;
+    const PeggingHistory *curr = this;
+    while (curr != nullptr)
+      {
+	if (curr->player != -1)
+	  {
+	    round.push_back(std::make_pair(curr->player, curr->card));
+	  }
+	if (curr->prevPlay == nullptr)
+	  {
+	    if (round.size() > 0)
+	      {
+		std::reverse(round.begin(), round.end());
+		result.push_back(round);
+	      }
+	    curr = curr->prevRound;
+	    round = std::vector<std::pair<int, const CribbageCard *>>();
+	  }
+	else
+	  {
+	    curr = curr->prevPlay;
+	  }
+      }
+    std::reverse(result.begin(), result.end());
+    return result;
+  }
+
 }
 

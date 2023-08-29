@@ -59,7 +59,7 @@ namespace cpsc474
     return bestSplit;
   }
 
-  const CribbageCard *GreedyPegger::peg(const CribbageHand& cards, const PeggingHistory& hist, const std::vector<int>& scores, bool amDealer)
+  const CribbageCard *GreedyPegger::peg(const CribbageHand& cards, const PeggingHistory& hist, const CribbageCard& turn, const std::vector<int>& scores, bool amDealer)
   {
     const CribbageCard *selected = nullptr;
     size_t ties = 0;

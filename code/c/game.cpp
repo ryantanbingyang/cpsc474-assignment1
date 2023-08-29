@@ -229,7 +229,7 @@ namespace cpsc474
 	    // get player's played card
 	    std::vector<int> scoresReversed(scores.begin(), scores.end());
 	    std::reverse(scoresReversed.begin(), scoresReversed.end());
-	    const CribbageCard *play = policies[pegTurn]->peg(*pegCards[pegTurn], *history, pegTurn == 0 ? scores : scoresReversed, pegTurn == dealer);
+	    const CribbageCard *play = policies[pegTurn]->peg(*pegCards[pegTurn], *history, *turn, pegTurn == 0 ? scores : scoresReversed, pegTurn == dealer);
 
 	    if (play == nullptr && history->hasLegalPlay(*pegCards[pegTurn], pegTurn == dealer ? 0 : 1))
 	      {
@@ -286,13 +286,13 @@ namespace cpsc474
 	    // next player's turn
 	    pegTurn = 1 - pegTurn;
 	  }
-
+	
 	// delete histories
 	for (PeggingHistory *h : historyList)
 	  {
 	    delete h;
 	  }
-
+	
 	// delete (now empty) cards in hand
 	for (CribbageHand *h : pegCards)
 	  {
@@ -399,7 +399,7 @@ namespace cpsc474
 	  }
       }
 
-    return std::make_tuple(std::make_pair((double)p0Points / count, (double)p1Points/ count), overallResults, (double)totalHands / count);
+    return std::make_tuple(std::make_pair((double)p0Points / count, (double)p1Points/ count), overallResults, (double)totalHands / count, count);
   }
 
   
@@ -422,6 +422,35 @@ namespace cpsc474
       }
     
     return (scores[0] > scores[1] ? 1 : -1) * points;
+  }
+
+  EvaluationResults add(const EvaluationResults& lhs, const EvaluationResults& rhs)
+  {
+    double p0Points = std::get<0>(std::get<0>(lhs)) * std::get<3>(lhs) + std::get<0>(std::get<0>(rhs)) * std::get<3>(rhs);
+    double p1Points = std::get<1>(std::get<0>(lhs)) * std::get<3>(lhs) + std::get<1>(std::get<0>(rhs)) * std::get<3>(rhs);
+    int totalGames = std::get<3>(lhs) + std::get<3>(rhs);
+    double totalHands = std::get<2>(lhs) * std::get<3>(lhs) + std::get<2>(rhs) * std::get<3>(rhs);
+    std::unordered_map<int, size_t> freq;
+    for (auto i = std::get<1>(lhs).begin(); i != std::get<1>(lhs).end(); i++)
+      {
+	if (freq.count(i->first) == 0)
+	  {
+	    freq[i->first] = 0;
+	  }
+	freq[i->first] += i->second;
+      }
+    for (auto i = std::get<1>(rhs).begin(); i != std::get<1>(rhs).end(); i++)
+      {
+	if (freq.count(i->first) == 0)
+	  {
+	    freq[i->first] = 0;
+	  }
+	freq[i->first] += i->second;
+      }
+    return std::make_tuple(std::make_pair(p0Points / totalGames, p1Points / totalGames),
+			   freq,
+			   totalHands / totalGames,
+			   totalGames);
   }
   
 }

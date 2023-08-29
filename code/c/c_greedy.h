@@ -8,7 +8,7 @@ extern "C"
 
   void greedy_keep(const void *game, const void *hand, int scores[2], int am_dealer, void *split[2]);
 
-  const void *greedy_peg(const void *game, const void *hand, const void *hist, int scores[2], int am_dealer);
+  const void *greedy_peg(const void *game, const void *hand, const void *turn, const void *hist, int scores[2], int am_dealer);
 
 
 #ifdef __cplusplus

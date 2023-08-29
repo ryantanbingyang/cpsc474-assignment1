@@ -79,8 +79,8 @@ def score(game, hand, turn, crib):
     straights += game.straight_value(curr_run, combinations)
 
     flushes = 0
-    max_flush = max(suit_count[s] for s in game.all_suits())
-    if max_flush == len(hand) and not crib and (turn is None or turn.suit() != hand[0].suit()):
+    max_flush, long_suit = max(((suit_count[s], s) for s in game.all_suits()), key=lambda p: p[0])
+    if max_flush == len(hand) and not crib and (turn is None or turn.suit() != long_suit):
         # flush in hand does not match turn card
         flushes += game.hand_flush_value(len(hand))
     elif max_flush == len(hand) + 1:

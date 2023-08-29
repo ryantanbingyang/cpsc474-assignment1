@@ -46,7 +46,8 @@ namespace cpsc474
      * as the cards in the hand to play from.
      *
      * @param hand a CribbageHand
-     * @param a PeggingHistory
+     * @param hist a PeggingHistory
+     * @param turn a CribbageCard
      * @param scores an vector of integers both less than the score needed
      *        to win the game
      * @param am_dealer true if the policy is playing as the dealer,
@@ -54,7 +55,7 @@ namespace cpsc474
      * @return a pointer to a CribbageCard contained in hand that is legal
      *         to play given the given history, or nullptr if no such card
      */
-    virtual const CribbageCard *peg(const CribbageHand& cards, const PeggingHistory& hist, const std::vector<int>& scores, bool amDealer) = 0;
+    virtual const CribbageCard *peg(const CribbageHand& cards, const PeggingHistory& hist, const CribbageCard& turn, const std::vector<int>& scores, bool amDealer) = 0;
   };
   
   class CribbagePolicy : public KeepPolicy, public PegPolicy
@@ -71,7 +72,7 @@ namespace cpsc474
 
     std::vector<CribbageHand *> keep(const CribbageHand& cards, const std::vector<int>& scores, bool amDealer) { return keepPolicy.keep(cards, scores, amDealer); }
 
-    const CribbageCard *peg(const CribbageHand& cards, const PeggingHistory& hist, const std::vector<int>& scores, bool amDealer) { return pegPolicy.peg(cards, hist, scores, amDealer); }
+    const CribbageCard *peg(const CribbageHand& cards, const PeggingHistory& hist, const CribbageCard& turn, const std::vector<int>& scores, bool amDealer) { return pegPolicy.peg(cards, hist, turn, scores, amDealer); }
     
   protected:
     KeepPolicy& keepPolicy;
@@ -94,7 +95,7 @@ namespace cpsc474
   public:
   RandomPegger(const CribbageGame& game) : game(game) {}
 
-    const CribbageCard *peg(const CribbageHand& cards, const PeggingHistory& hist, const std::vector<int>& scores, bool amDealer);
+    const CribbageCard *peg(const CribbageHand& cards, const PeggingHistory& hist, const CribbageCard& turn, const std::vector<int>& scores, bool amDealer);
 
   protected:
     const CribbageGame& game;

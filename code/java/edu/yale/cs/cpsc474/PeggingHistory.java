@@ -1,8 +1,11 @@
 package edu.yale.cs.cpsc474;
 
+import java.util.Collections;
 import java.util.Arrays;
 import java.util.Set;
 import java.util.HashSet;
+import java.util.List;
+import java.util.ArrayList;
 
 /**
  * A history of the cards played durring the pegging (counting) phase
@@ -25,7 +28,7 @@ public class PeggingHistory
     private PeggingHistory prevPlay;
 
     /**
-     * The card played in thisstep of pegging, or null.
+     * The card played in this step of pegging, or null.
      */
     private CribbageCard card;
 
@@ -216,6 +219,7 @@ public class PeggingHistory
 
     /**
      * Determines if the given card is legal for the given player to play.
+     * This assumes that the player has the card in their hand.
      *
      * @param card a CribbageCard, non-null
      * @param player 0 for the dealer, 1 for the non-dealer
@@ -384,4 +388,103 @@ public class PeggingHistory
 	
 	return new int[] {pairScore + fifteenScore + straightScore + lastScore, pairScore, fifteenScore, straightScore, lastScore};
     }
+
+    /**
+     * Returns the play-by-play of the current pegging history.
+     * The play-by-play is returned as a list of lists of plays,
+     * whith list representing a new count.  The lists are ordered
+     * from the start of pegging to the end.
+     *
+     * @return a list of lists of PeggingPlays
+     */
+    public List<List<PeggingPlay>> plays()
+    {
+	List<List<PeggingPlay>> result = new ArrayList<>();
+	List<PeggingPlay> round = new ArrayList<>();
+	PeggingHistory curr = this;
+	while (curr != null)
+	    {
+		if (curr.player != -1)
+		    {
+			round.add(new PeggingPlay(curr.player, curr.card));
+		    }
+		if (curr.prevPlay == null)
+		    {
+			if (round.size() > 0)
+			    {
+				Collections.reverse(round);
+				result.add(round);
+			    }
+			curr = curr.prevRound;
+			round = new ArrayList<>();
+		    }
+		else
+		    {
+			curr = curr.prevPlay;
+		    }
+	    }
+	Collections.reverse(result);
+	return result;
+    }
+
+    public String toString()
+    {
+	return plays().toString();
+    }
+    
+    /**
+     * A (player, card) pair representing a play during the pegging phase
+     * of a hand of cribbage.
+     */
+    public static class PeggingPlay
+    {
+	private int player;
+	private CribbageCard card;
+
+	/**
+	 * Creates a new play recording that the given player played
+	 * the given card.
+	 *
+	 * @param p 0 for the dealer, 1 for the non-dealer
+	 * @param c a card, or null
+	 */
+	public PeggingPlay(int p, CribbageCard c)
+	{
+	    player = p;
+	    card = c;
+	}
+
+	/**
+	 * Returns the player who made this play.  The return value
+	 * is 0 for the dealer and 1 for the non-dealer.
+	 *
+	 * @return the index of the player who made this play
+	 */
+	public int getPlayer()
+	{
+	    return player;
+	}
+
+	/**
+	 * Returns the played card, or null for a pass/go
+	 * 
+	 * @return the played card, or null
+	 */
+	public CribbageCard getCard()
+	{
+	    return card;
+	}
+
+	public String toString()
+	{
+	    StringBuilder result = new StringBuilder();
+	    result.append("(")
+		.append(player)
+		.append(", ")
+		.append(card)
+		.append(")");
+	    return result.toString();
+	}
+    }
+	  
 }

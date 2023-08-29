@@ -26,13 +26,19 @@ typedef void (*KEEP_POLICY)(const void *game, const void *hand, int scores[2], i
  *
  * @param game a pointer to a CribbageGame, non-null
  * @param hand a pointer to a CribbageHand, non-null
- * @param a pointer to a PeggingHistory, non-null
+ * @param hist a pointer to a PeggingHistory, non-null
+ * @param turn a pointer to a CribbageCard, non-null
  * @param scores an array of integers both less than the score needed to win
  * @param am_dealer 1 if the policy is playing as the dealer, 0 othwewise
  * @param return a pointer to a CribbageCard contained in hand that is
  *        legal to play given the given history, or NULL if no such card
 */
-typedef const void *(*PEG_POLICY)(const void *game, const void *hand, const void *hist, int scores[2], int am_dealer);
+typedef const void *(*PEG_POLICY)(const void *game, const void *hand, const void *hist, const void *turn, int scores[2], int am_dealer);
+
+typedef struct {
+  int player;
+  const void *card;
+} pegging_play;
 
 #ifdef __cplusplus
 extern "C"
@@ -213,7 +219,7 @@ extern "C"
    * @param c a pointer to a CribbageCard, or NULL to indicate a pass ("go")
    * @param p 0 for the dealer, or 1 for the non-dealer
    * @return the score earned by the given player, or negative to indicate
-   * points earned by the other player, or INT_MIN to indicat an illegal play
+   * points earned by the other player, or INT_MIN to indicate an illegal play
    */
   int history_score(const void *h, const void *c, int player);
 
@@ -234,6 +240,23 @@ extern "C"
    */
   int history_subscores(const void *h, const void *c, int player, int subscores[4]);
 
+  /**
+   * Returns a 2-D array representing the play-by-play of the current
+   * hand of pegging.  Each row represents a different count from 0 to 31,
+   * starting with the initial count.  Each column represents a player's
+   * play, starting with the first play in the count.  A pass will
+   * be recorded with a NULL card in the play.  Ownership of the array
+   * is transferred to the caller, and each row and the array of rows
+   * must be eventually freed.  The number of rows (counts) is recorded
+   * in the value pointed to by rows, and the number of plays in each
+   * count is returned as an array whose address is stored in the given
+   * location.  Ownership of the array of row sizes is transferred to
+   * the caller as well.
+   *
+   * @return a 2-D array of pegging_plays, non-NULL
+   */
+  pegging_play **history_plays(const void *h, size_t *rows, size_t **cols);
+  
   /**
    * Creates a hand from the given cards.  The resulting hand is owned
    * by the caller, and must eventually be destroyed with hand_destroy.
@@ -351,13 +374,14 @@ extern "C"
    *
    * @param game a pointer to a CribbageGame, non-null
    * @param hand a pointer to a CribbageHand, non-null
-   * @param a pointer to a PeggingHistory, non-null
+   * @param hist a pointer to a PeggingHistory, non-null
+   * @param turn a pointer to a CribbageCard, non-null
    * @param scores an array of integers both less than the score needed to win
    * @param am_dealer 1 if the policy is playing as the dealer, 0 othwewise
    * @param return a pointer to a CribbageCard contained in hand that is
    *        legal to play given the given history, or NULL if no such card
    */
-  const void *peg(const void *game, const void *hand, const void *hist, int scores[2], int am_dealer);
+  const void *peg(const void *game, const void *hand, const void *hist, const void *turn, int scores[2], int am_dealer);
 
 #ifdef __cplusplus
 }

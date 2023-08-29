@@ -26,7 +26,7 @@ namespace cpsc474
   public:
   GreedyPegger(const CribbageGame& game) : game(game) {}
 
-    const CribbageCard *peg(const CribbageHand& cards,const PeggingHistory& hist, const std::vector<int>& scores, bool amDealer);
+    const CribbageCard *peg(const CribbageHand& cards, const PeggingHistory& hist, const CribbageCard& turn, const std::vector<int>& scores, bool amDealer);
 
   protected:
     const CribbageGame& game;

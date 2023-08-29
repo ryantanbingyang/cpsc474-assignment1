@@ -198,6 +198,36 @@ extern "C"
     return scores[0];
   }
 
+  pegging_play **history_plays(const void *h, size_t *rows, size_t **cols)
+  {
+    const PeggingHistory *history = (const PeggingHistory *)h;
+    auto plays = history->plays();
+    *rows = plays.size();
+    *cols = (size_t *)malloc(sizeof(size_t) * *rows);
+    pegging_play **result = (pegging_play **)malloc(sizeof(*result) * (*rows));
+    if ((*cols) == NULL || result == NULL)
+      {
+	free(*cols);
+	free(result);
+	*rows = 0;
+	*cols = NULL;
+	return NULL;
+      }
+    for (size_t r = 0; r < *rows; r++)
+      {
+	(*cols)[r] = plays[r].size();
+	result[r] = (pegging_play *)malloc(sizeof(pegging_play) * (*cols)[r]);
+	for (size_t c = 0; c < (*cols)[r]; c++)
+	  {
+	    result[r][c].player = plays[r][c].first;
+	    result[r][c].card = plays[r][c].second;
+	  }
+      }
+
+    return result;
+  }
+    
+
   void *hand_create(const void *c[], size_t n)
   {
     std::vector<const CribbageCard *> cards;

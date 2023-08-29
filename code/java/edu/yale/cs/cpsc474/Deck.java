@@ -111,7 +111,7 @@ public class Deck<R, S, RT extends RankType<R>, ST extends SuitType<S>>
 
 	// go through cards
 	List<Card<R, S>> remaining = new ArrayList<Card<R, S>>();
-	for (Card<R, S> c : cards)
+	for (Card<R, S> c : this.cards)
 	    {
 		if (counts.containsKey(c) && counts.get(c) > 0)
 		    {
@@ -122,7 +122,7 @@ public class Deck<R, S, RT extends RankType<R>, ST extends SuitType<S>>
 			remaining.add(c);
 		    }
 	    }
-	cards = remaining;
+	this.cards = remaining;
     }
 
     public static void main(String[] args)

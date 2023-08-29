@@ -17,7 +17,7 @@
 
 namespace cpsc474
 {
-  typedef std::tuple<std::pair<double, double>, std::unordered_map<int, size_t>, double> EvaluationResults;
+  typedef std::tuple<std::pair<double, double>, std::unordered_map<int, size_t>, double, int> EvaluationResults;
 
  class CribbageGame
   {
@@ -110,6 +110,9 @@ namespace cpsc474
     static std::string DEFAULT_SUITS;
     static std::vector<std::string> DEFAULT_RANKS;
   };
+
+  EvaluationResults add(const EvaluationResults& lhs, const EvaluationResults& rhs);
+
 }
 
 #endif

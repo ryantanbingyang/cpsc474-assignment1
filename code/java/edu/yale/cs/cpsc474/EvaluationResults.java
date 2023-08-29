@@ -62,6 +62,56 @@ public class EvaluationResults
     }
 
     /**
+     * Adds the given results into these results.
+     *
+     * @param results evaluation results, non-null
+     */
+    public void add(EvaluationResults results)
+    {
+	for (int i = 0; i < totalPoints.length; i++)
+	    {
+		totalPoints[i] += results.totalPoints[i];
+	    }
+	totalHands += results.totalHands;
+	count += results.count;
+	for (Map.Entry<Integer, Integer> e : results.freq.entrySet())
+	    {
+		int gameScore = e.getKey();
+		int value = e.getValue();
+		if (!freq.containsKey(gameScore))
+		    {
+			freq.put(gameScore, 0);
+		    }
+		freq.put(gameScore, freq.get(gameScore) + value);
+	    }
+    }
+
+    /**
+     * Returns the standard deviation of the sample mean for these
+     * results.
+     *
+     * @return the standard deviation of the sample mean
+     */
+    public double stddev()
+    {
+	long sumSquares = 0;
+	int sumValues = 0;
+	int n = 0;
+	for (Map.Entry<Integer, Integer> e : freq.entrySet())
+	    {
+		int gameScore = e.getKey();
+		int value = e.getValue();
+		sumSquares += gameScore * gameScore * value;
+		sumValues += gameScore * value;
+		n += value;
+	    }
+	double mean = (double)sumValues / n;
+	double variance = (double)sumSquares / n - Math.pow(mean, 2);
+	double stddev = Math.sqrt(variance) / Math.sqrt(n);
+	return stddev;
+    }
+    
+    /**
      * Returns the average net points per game won by P0.
      * Undefined if these results reflect 0 games.
      *

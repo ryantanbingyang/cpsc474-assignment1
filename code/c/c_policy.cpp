@@ -17,11 +17,11 @@ namespace cpsc474
     return std::vector<CribbageHand *> { (CribbageHand *)split[0], (CribbageHand *)split[1] };
   }
 
-  const CribbageCard *CPolicy::peg(const CribbageHand& cards, const PeggingHistory& hist, const std::vector<int>& scores, bool amDealer)
+  const CribbageCard *CPolicy::peg(const CribbageHand& cards, const PeggingHistory& hist, const CribbageCard& turn, const std::vector<int>& scores, bool amDealer)
   {
     int s[2] = { scores[0], scores[1] };
 
-    return (const CribbageCard *)cPeg(&game, &cards, &hist, s, amDealer);
+    return (const CribbageCard *)cPeg(&game, &cards, &hist, &turn, s, amDealer);
   }
 
 }

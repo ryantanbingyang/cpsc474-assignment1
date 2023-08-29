@@ -23,6 +23,7 @@ public class CribbageGame
     private OrderedRanks cardRanks;
     private CharacterSuits cardSuits;
     private List<Integer> allValues;
+    private List<CribbageAction> allDiscards;
     
     public CribbageGame()
     {
@@ -32,6 +33,17 @@ public class CribbageGame
 	for (int i = 1; i <= 10; i++)
 	    {
 		allValues.add(i);
+	    }
+	allDiscards = new ArrayList<>();
+	for (int first = 0; first < keepCards + throwCards; first++)
+	    {
+		for (int second = first + 1; second < keepCards + throwCards; second++)
+		    {
+			List<Integer> discard = new ArrayList<>();
+			discard.add(first);
+			discard.add(second);
+			allDiscards.add(new CribbageAction(discard));
+		    }
 	    }
     }
 	
@@ -160,7 +172,7 @@ public class CribbageGame
     }
     
     /**
-     * Returns the score and subscores that would be earned by the given
+     * Returns the score and subscores that would be earned by the giv<en
      * hand with the given turn (cut) card.  The scores are returned
      * in a vector in the order total, pairs, 15s, runs, flushes, nobs.
      *
@@ -322,13 +334,13 @@ public class CribbageGame
 
 		// initialize pegging
 		int pegTurn = 1 - dealer;
-		PeggingHistory history = new PeggingHistory(this);
+		PeggingHistory history = new PeggingHistory(CribbageGame.this);
 		CribbageHand[] pegCards = new CribbageHand[] {keeps[0][0], keeps[1][0]};
 		while (MoreArrays.max(scores) < winningScore
 		       && !history.isTerminal())
 		    {
 			// get player's played card
-			CribbageCard play = policies[pegTurn].peg(pegCards[pegTurn], history, pegTurn == 0 ? Arrays.copyOf(scores, scores.length) : MoreArrays.reverse(scores), pegTurn == dealer);
+			CribbageCard play = policies[pegTurn].peg(pegCards[pegTurn], history, turn, pegTurn == 0 ? Arrays.copyOf(scores, scores.length) : MoreArrays.reverse(scores), pegTurn == dealer);
 
 			// check for legality of chosen card
 			if (play == null && history.hasLegalPlay(pegCards[pegTurn], pegTurn == dealer ? 0 : 1))
@@ -469,6 +481,334 @@ public class CribbageGame
 	    }
 
 	return (scores[0] > scores[1] ? 1 : -1) * points;
+    }
+
+    public class CribbageState
+    {
+	/** The scores for the two players, dealer in index 0 */
+	private int[] scores;
+
+	/**
+	 * Two-element array with dealer's hand and other player's hand.  Nulls if no cards dealt.
+	 */
+	private CribbageHand[] hands;
+
+	/**
+	 * The card turned up during the cut.  Note that thus is set during the initial deal but does not
+	 * affect the information sets until after both discards.
+	 */
+	private CribbageCard turn;
+	
+	/**
+	 * The cards discarded by each player.  A null element indicates no discard yet.  If the crib has
+	 * been scored then there is one element giving the crib (the two players' discards combined).
+	 */
+	private CribbageHand[] discards;
+
+	
+	/**
+	 * The cards remaining in each player's hand during ther play phase.
+	 */
+	private CribbageHand[] playable;
+	
+	/**
+	 * The prgging history, or null before the pegging phase.
+	 */
+	private PeggingHistory history;
+
+	/**
+	 * Thenext player to play during the play phase.
+	 */
+	private int player;
+	
+	/**
+	 * Creates the state at the beginning of the game -- no cards dealt and score 0-0.
+	 */
+	public CribbageState()
+	{
+	    this(new int[] {0, 0});
+	}
+
+	/**
+	 * Creates the state at the beginning of a hand with the given score.
+	 *
+	 * @param s a two-element array of non-negative integers giving the scores of the two players, dealyer first
+	 */
+	public CribbageState(int[] s)
+	{
+	    this(s,
+		 new CribbageHand[] {null, null, null},
+		 null,
+		 new CribbageHand[] {null, null},
+		 new CribbageHand[] {null, null},
+		 null,
+		 1);
+	}
+
+	private CribbageState(int[] s, CribbageHand[] h, CribbageCard t, CribbageHand[] d, CribbageHand[] p, PeggingHistory his, int toPlay)
+	{
+	    scores = new int[] {s[0], s[1]};
+	    hands = h;
+	    turn = t;
+	    discards = d;
+	    playable = p;
+	    history = his;
+	    player = toPlay;
+	}
+	    
+	
+	/**
+	 * Determines if this state represents the end of the game or the end of the hand.
+	 *
+	 * @return true if and only if this state is the end of the game or the end of the hand
+	 */
+	public boolean isTerminal()
+	{
+	    // terminal if either player has winning score or if at end of hand
+	    return scores[0] >= winningScore || scores[1] >= winningScore || (discards != null && discards.length == 1);
+	}
+
+
+	/**
+	 * Returns the scores in this state, dealer at the beginning of the gahdn first.
+	 *
+	 * @return the scores in this state
+	 */
+	public int[] getScores()
+	{
+	    return new int[] {scores[0], scores[1]};
+	}
+
+	
+	/**
+	 * Returns the list of actionas available to the current player in this state.  If this state
+	 * is terminal or if this state is a chance state, then the return value is null.  If the only
+	 * legal action is to pass, the return value is a one-element list containing null.  Otherwise,
+	 * the return value is a list of legal actions.
+	 */
+	public List<GameAction> getActions()
+	{
+	    if (isTerminal())
+		{
+		    // hand over
+		    return null;
+		}
+	    else if (hands[0] == null)
+		{
+		    // deal hands
+		    return null;
+		}
+	    else if (discards[0] == null || discards[1] == null)
+		{
+		    // current player chooses discards
+		    return new ArrayList<GameAction>(allDiscards);
+		}
+	    else if (playable[0].size() + playable[1].size() > 0)
+		{
+		    // determine legal plays for current player
+		    List<GameAction> actions = new ArrayList<>();
+		    int index = 0;
+		    for (CribbageCard c : playable[player])
+			{
+			    if (history.isLegal(c, player))
+				{
+				    List<Integer> play = new ArrayList<>();
+				    play.add(index);
+				    actions.add(new CribbageAction(play));
+				}
+			    index++;
+			}
+		    if (actions.size() == 0)
+			{
+			    actions.add(null);
+			}
+		    return actions;
+		}
+	    else
+		{
+		    // count at end of hand
+		    List<GameAction> actions = new ArrayList<>();
+		    actions.add(null);
+		    return actions;
+		}
+	}
+
+	
+	/**
+	 * Returns the state that results from the given action, provided that the current state is not
+	 * terminal.
+	 *
+	 * @param a one of the GameActions returned by the getActions method for this state
+	 * @return the new state
+	 */
+	public CribbageState nextState(GameAction a)
+	{
+	    if (hands[0] == null)
+		{
+		    // initial deal -- action must be null
+		    if (a != null)
+			{
+			    throw new IllegalArgumentException("action for initial deal non-null: " + a);
+			}
+		    CribbageHand[] d = deal();
+		    return new CribbageState(scores,
+					     new CribbageHand[] {d[0], d[1]},
+					     d[2].iterator().next(),
+					     new CribbageHand[] {null, null},
+					     new CribbageHand[] {null, null},
+					     null,
+					     player);
+		}
+	    else if (hands[0].size() > keepCards)
+		{
+		    // dealer discard
+		    CribbageHand[] result = hands[0].split(((CribbageAction)a).getDiscard());
+		    return new CribbageState(scores,
+					     new CribbageHand[] {result[0], hands[1]},
+					     turn,
+					     new CribbageHand[] {result[1], null},
+					     new CribbageHand[] {result[0], null},
+					     null,
+					     player);
+		}
+	    else if (hands[1].size() > keepCards)
+		{
+		    // non-dealer discard
+		    CribbageHand[] result = hands[1].split(((CribbageAction)a).getDiscard());
+
+		    // new state accounts for heels
+		    return new CribbageState(new int[] {scores[0] + turnCardValue(turn), scores[1]},
+					     new CribbageHand[] {hands[0], result[0]},
+					     turn,
+					     new CribbageHand[] {discards[0], result[1]},
+					     new CribbageHand[] {playable[0], result[0]},
+					     new PeggingHistory(CribbageGame.this),
+					     player);
+		}
+	    else if (playable[0].size() + playable[1].size() > 0)
+		{
+		    // play a card
+		    CribbageCard play = null;
+		    CribbageHand[] newPlayable = {playable[0], playable[1]};
+		    if (a != null)
+			{
+			    // play a card
+			    CribbageHand[] result = playable[player].split(((CribbageAction)a).getPlay());
+			    newPlayable[player] = result[0];
+			    play = result[1].iterator().next();
+			}
+		    int[] points = history.score(play, player);
+		    int[] newScores = new int[] {scores[0], scores[1]};
+		    if (points[0] < 0)
+			{
+			    newScores[1 - player] += -points[0];
+			}
+		    else
+			{
+			    newScores[player] += points[0];
+			}
+		    PeggingHistory newHistory = history.play(play, player);
+		    return new CribbageState(newScores,
+					     hands,
+					     turn,
+					     discards,
+					     newPlayable,
+					     newHistory,
+					     1 - player);
+		}
+	    else
+		{
+		    int[] newScores = new int[] {scores[0], scores[1]};
+		    CribbageHand crib = new CribbageHand(discards[0], discards[1]);
+		    
+		    // score non-dealer's hand
+		    newScores[1] += score(hands[1], turn, false)[0];
+		    
+		    // score dealer's hand
+		    if (newScores[1] < winningScore)
+			{
+			    newScores[0] += score(hands[0], turn, false)[0];
+
+			    if (newScores[0] < winningScore)
+				{
+				    // score crib
+				    newScores[0] += score(crib, turn, true)[0];
+				}
+			}
+		    
+		    return new CribbageState(newScores,
+					     hands,
+					     turn,
+					     new CribbageHand[] {crib},
+					     playable,
+					     history,
+					     1 - player);
+		}
+	}
+
+	
+	public String toString()
+	{
+	    return Arrays.toString(scores) + Arrays.toString(hands) + turn + Arrays.toString(discards) + Arrays.toString(playable) + history + player;
+	}
+    }
+
+    
+    private class CribbageAction implements GameAction
+    {
+	/* A list of lists of integers of valid card combinations to play.  For discard actions,
+	 * that is a list of two indices, one for each 2-combination of cards in the hand.  For
+	 * pegging actions, that is a list of one index giving the index of a legal card to play.
+	 */
+	private List<Integer> cardCombos;
+
+	
+	public CribbageAction(List<Integer> action)
+	{
+	    cardCombos = new ArrayList<>(action);
+	}
+
+	
+	public List<Integer> getDiscard()
+	{
+	    return cardCombos;
+	}
+
+	
+	public List<Integer> getPlay()
+	{
+	    return cardCombos;
+	}
+    }
+
+    public static void main(String[] args)
+    {
+	CribbageGame g = new CribbageGame();
+	int[] scores = new int[] {0, 0};
+	int dealer = 0;
+	while (scores[0] < g.winningScore && scores[1] < g.winningScore)
+	    {
+		CribbageGame.CribbageState s = g.new CribbageState(scores);
+		while (!s.isTerminal())
+		    {
+			List<GameAction> actions = s.getActions();
+			if (actions == null)
+			    {
+				s = s.nextState(null);
+			    }
+			else
+			    {
+				s = s.nextState(actions.get((int)(Math.random() * actions.size())));
+			    }
+			System.out.println(s);
+		    }
+		System.out.println(s);
+		scores = s.getScores();
+
+		// switch who is dealer
+		dealer = 1 - dealer;
+		scores = new int[] {scores[1], scores[0]};
+	    }
     }
 }
 

@@ -1,5 +1,6 @@
 import itertools as it
 import sys
+import copy
 
 import scoring
 from deck import Deck,Card
@@ -180,41 +181,24 @@ class Game:
         return part_size == len(hand)
     
 
-    def play(self, p0_policy, p1_policy, log):
-        """ Plays one game of cribbage between players following
-            the given policies.  Messages describing actions and results
-            are logged to the given log.
-
-            p0_policy -- a CribbagePolicy for the player who deals first
-            p1_policy -- a CribbagePolicy for the other player
-            log -- a function that takes a string
-        """
-        # scores start at 0
-        scores = [0, 0]
-
-        # pack policies into a list so we can index them
+    def play(self, p0_policy, p1_policy, log, initial=(0, 0)):
+        scores = list(initial)
+        score_by_turn = []
         policies = [p0_policy, p1_policy]
-
-        # dealer for first hand is p0
         dealer = 0
-
-        # tracking hands per game is useful for debugging
         handsPlayed = 0
 
         # loop until one player has points to win
         while max(scores) < self.winning_score():
+            score_by_turn.append((tuple(scores) , dealer))
             log("Score: " + str(scores))
-            handsPlayed += 1
-            
-            # deal 2*(4+2)+1 cards
+            # deal cards
             per_player = self.keep_cards() + self.throw_cards()
             in_play = self.deal(2 * per_player + 1)
-            # split dealt cards into hands for both players and turn card
             hands = [in_play[per_player * p : per_player * (p + 1)] for p in [0, 1]]
+            handsPlayed += 1
             turn = in_play[-1]
-
-            # get kept cards for each player
-            keeps = [policies[p].keep(hands[p],
+            keeps = [policies[p].keep(copy.deepcopy(hands[p]),
                                       scores[:] if p == 0
                                                else list(reversed(scores)),
                                       dealer == p)
@@ -224,33 +208,22 @@ class Game:
             for p in [0, 1]:
                 if not self.is_legal_split(hands[p], keeps[p]):
                     raise Exception("split does not partition hand")
-
-            # check for heels (cutting a Jack)
+                if len(keeps[p][1]) != self.throw_cards():
+                    raise Exception("discarded {n} cards".format(n=len(keeps[p][1])))
+                
             scores[dealer] += self.turn_card_value(turn)
             log("Turn: " + str(turn) + " " + str(scores))
 
             # playing/pegging
-            # keep track of who has passed
             passes = [False, False]
-
-            # remaining cards to play is initially each players' kept cards
             peg_cards = [k[0] for k in keeps]
-
-            # non-dealer plays the first card
             peg_turn = 1 - dealer
-
-            # Pegging object tracks played cards and implements rules/scoring
             history = Pegging()
-
-            # unused?
             played = 0
             last_played = 0
-
-            # loop until no cards left or someone has won
             while max(scores) < self.winning_score() and (sum(len(cards) for cards in peg_cards) > 0 or not history.is_start_round()):
                 if not passes[peg_turn]:
-                    # get played card
-                    play = policies[peg_turn].peg(peg_cards[peg_turn], history, scores[:] if peg_turn == 0 else list(reversed(scores)), dealer == peg_turn)
+                    play = policies[peg_turn].peg(copy.deepcopy(peg_cards[peg_turn]), history, turn, scores[:] if peg_turn == 0 else list(reversed(scores)), dealer == peg_turn)
 
                     # check legality of play
                     if play is None and history.has_legal_play(self, peg_cards[peg_turn], 0 if peg_turn == dealer else 1):
@@ -259,23 +232,18 @@ class Game:
                         raise Exception("invalid card")
                     
                     if play is None:
-                        # player has passed
                         passes[peg_turn] = True
                     else:
                         played += 1
                 else:
-                    # player still passes
                     play = None
 
-                # get result of play
                 log(play)
                 history, score = history.play(self, play, 0 if peg_turn == dealer else 1)
                 if score > 0:
-                    # positive is points for player
                     scores[peg_turn] += score
                     log(scores)
                 elif score < 0:
-                    # negative is points for other player (go)
                     scores[1 - peg_turn] += -score
                     log(scores)
 
@@ -319,8 +287,9 @@ class Game:
                 log(scores)
             
             dealer = 1 - dealer
+        score_by_turn.append((tuple(scores) , dealer))
             
-        return self.game_value(*scores), handsPlayed
+        return self.game_value(*scores), handsPlayed, score_by_turn
 
 
 def peg(game, list):

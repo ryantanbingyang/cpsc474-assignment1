@@ -68,7 +68,7 @@ class Pegging:
 
     def is_legal(self, game, card, player):
         """ Determines if it is legal for the player to play the given
-            card.
+            card.  This assumes the player has the card available to play.
 
             game -- a cribbage game
             card -- a card
@@ -172,3 +172,25 @@ class Pegging:
             thirtyone_score = 0
         
         return pair_score + straight_score + fifteen_score + thirtyone_score
+
+
+    def plays(self):
+        history = []
+        curr_round = []
+        curr = self
+        while curr is not None:
+            if curr._player is not None:
+                curr_round.append((curr._player, curr._card))
+            if curr._prev_play is None:
+                if len(curr_round) > 0:
+                    history.append(list(reversed(curr_round)))
+                curr = curr._prev_round
+                curr_round = []
+            else:
+                curr = curr._prev_play
+        if len(curr_round) > 0:
+            history.append(list(reversed(curr_round)))
+
+        return list(reversed(history))
+    
+        

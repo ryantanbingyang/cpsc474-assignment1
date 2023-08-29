@@ -50,9 +50,35 @@ namespace cpsc474
      * @return true if the player has passed, false otherwise
      */
     bool hasPassed(int player) const;
-    
+
+    /**
+     * Returns the history that results from playing the given card.
+     * If the card is illegal, the return value is nullptr
+     *
+     * @param card a legal card to play, or nullptr
+     * @param player 0 for the dealer, 1 for the non-dealer
+     * @return the new history, or nullptr
+     */
     PeggingHistory *play(const CribbageCard *card, int player) const;
+
+    /**
+     * Determines if the given card is valid to play given this history.
+     * This assumes the player has the given card in their hand.
+     *
+     * @param card a card
+     * @param player 0 for the dealer, 1 for the non-dealer
+     * @return true if the card is legal, false otherwise
+     */
     bool isLegal(const CribbageCard& card, int player) const;
+
+    /**
+     * Determines if the given hand contains a card that is legal to
+     * play, given this history.
+     *
+     * @param hand a hand
+     * @param player 0 for the dealer, 1 for the non-dealer
+     * @return true if the hand contains a legal card, false otherwise
+     */
     bool hasLegalPlay(const CribbageHand& hand, int player) const;
 
     /**
@@ -72,6 +98,16 @@ namespace cpsc474
      * or an empty vector
      */
     std::vector<int> score(const CribbageCard *card, int player) const;
+
+    /**
+     * Returns the play-by-play of the current pegging history.  The
+     * play-by-play is returned as a vector of vectors of plays, with
+     * each vector representing a new count.  The vectors are ordered
+     * from the start of pegging to the end.
+     *
+     * @return a vector of vectors of (player, card) pairs
+     */
+    std::vector<std::vector<std::pair<int, const CribbageCard *>>> plays() const;
     
   private:
     const CribbageGame& game;

@@ -3,7 +3,7 @@ package edu.yale.cs.cpsc474;
 public class GreedyPegger implements PegPolicy
 {
     @Override
-    public CribbageCard peg(CribbageHand cards, PeggingHistory hist, int[] scores, boolean amDealer)
+    public CribbageCard peg(CribbageHand cards, PeggingHistory hist, CribbageCard turn, int[] scores, boolean amDealer)
     {
 	// maximize score earned over all cards played, breaking ties
 	// uniformly randomly
