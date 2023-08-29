@@ -7,7 +7,7 @@ void keep(const void *game, const void *hand, int scores[2], int am_dealer, void
   return greedy_keep(game, hand, scores, am_dealer, split);
 }
 
-const void *peg(const void *game, const void *hand, const void *hist, int scores[2], int am_dealer)
+const void *peg(const void *game, const void *hand, const void *hist, const void *turn, int scores[2], int am_dealer)
 {
-  return greedy_peg(game, hand, hist, scores, am_dealer);
+  return greedy_peg(game, hand, hist, turn, scores, am_dealer);
 }

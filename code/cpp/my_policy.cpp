@@ -30,9 +30,9 @@ namespace cpsc474
     return policy->keep(cards, scores, amDealer);
   }
 
-  const CribbageCard *MyPolicy::peg(const CribbageHand& cards, const PeggingHistory& hist, const std::vector<int>& scores, bool amDealer)
+  const CribbageCard *MyPolicy::peg(const CribbageHand& cards, const PeggingHistory& hist, const CribbageCard& turn, const std::vector<int>& scores, bool amDealer)
   {
-    return policy->peg(cards, hist, scores, amDealer);
+    return policy->peg(cards, hist, turn, scores, amDealer);
   }
 
 }

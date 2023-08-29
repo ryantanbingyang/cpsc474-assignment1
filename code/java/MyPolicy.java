@@ -24,8 +24,8 @@ public class MyPolicy implements CribbagePolicy
     }
 
     @Override
-    public CribbageCard peg(CribbageHand cards, PeggingHistory hist, int[] scores, boolean amDealer)
+    public CribbageCard peg(CribbageHand cards, PeggingHistory hist, CribbageCard turn, int[] scores, boolean amDealer)
     {
-	return policy.peg(cards, hist, scores, amDealer);
+	return policy.peg(cards, hist, turn, scores, amDealer);
     }
 }

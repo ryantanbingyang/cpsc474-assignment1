@@ -9,8 +9,8 @@ class MyPolicy(CribbagePolicy):
         return self._policy.keep(hand, scores, am_dealer)
 
 
-    def peg(self, cards, history, scores, am_dealer):
-        return self._policy.peg(cards, history, scores, am_dealer)
+    def peg(self, cards, history, turn, scores, am_dealer):
+        return self._policy.peg(cards, history, turn, scores, am_dealer)
 
 
 
